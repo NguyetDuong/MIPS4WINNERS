@@ -5,36 +5,154 @@ import sys
 ###### Boilerplate code used from Instance Validator ######
 
 def main(argv):
-        if len(argv) != 1:
-                print "Usage: python algorithm.py [path_to_input_file]"
-                return
+    if len(argv) != 1:
+        print "Usage: python algorithm.py [path_to_input_file]"
+        return
+    else:
         print processInput(argv[0])
 
 def processInput(s):
-        fin = open(s, "r")
-        line = fin.readline().split()
-        if len(line) != 1 or not line[0].isdigit():
-                return "Line 1 must contain a single integer."
-        N = int(line[0])
-        if N < 1 or N > 100:
-                return "N must be an integer between 1 and 100, inclusive."
+    fin = open(s, "r")
+    line = fin.readline().split()
+    if len(line) != 1 or not line[0].isdigit():
+        return "Line 1 must contain a single integer."
+    N = int(line[0])
+    if N < 1 or N > 100:
+        return "N must be an integer between 1 and 100, inclusive."
 
-        # past here need to change #
-        d = [[0 for j in range(N)] for i in range(N)]
-        for i in xrange(N):
-                line = fin.readline().split()
-                if len(line) != N:
-                        return "Line " + str(i+2) + " must contain N integers."
-                for j in xrange(N):
-                        if not line[j].isdigit():
-                                return "Line " + str(i+2) + " must contain N integers."
-                        d[i][j] = int(line[j])
-                        if d[i][j] < 0 or d[i][j] > 1:
-                                return "The adjacency matrix must be comprised of 0s and 1s."
-        for i in xrange(N):
-                if d[i][i] != 0:
-                        return "A node cannot have an edge to itself."
-        return "instance ok"
+    # past here need to change #
+    d = [[0 for j in range(N)] for i in range(N)]
+    for i in xrange(N):
+        line = fin.readline().split()
+        if len(line) != N:
+            return "Line " + str(i+2) + " must contain N integers."
+        for j in xrange(N):
+            if not line[j].isdigit():
+                return "Line " + str(i+2) + " must contain N integers."
+            d[i][j] = int(line[j])
+            if d[i][j] < 0 or d[i][j] > 1:
+                return "The adjacency matrix must be comprised of 0s and 1s."
+    for i in xrange(N):
+        if d[i][i] != 0:
+            return "A node cannot have an edge to itself."
+    return "instance ok"
+
+class Node:
+
+    def __init__(self, label, successors, graph):
+        self.label = label
+        #A list of successor labels, should beintegers. 
+        self.successor_labels = successors
+        #The graph this node is part of
+        self.graph = graph
+
+    def __eq__(self, other):
+        return self.label == other.label
+
+    def __ne__(self, other):
+        return self.label != other.label
+
+    def remove_successor_by_label(self, label):
+        self.successor_labels.remove(label)
+
+    def remove_successor(self, succ):
+        self.successor_labels.remove(succ.label)
+
+    def add_successor(self, succ):
+        self.successor_labels.append(succ.label)
+
+    def add_successor_by_label(self, succ_label):
+        self.successor_labels.append(succ_label)
+
+    @property
+    def successors(self):
+        return [self.graph.get_node_by_label(x) for x in
+                self.successor_labels]
+
+    @property
+    def predecessors(self):
+        return self.graph.get_predecessors(self)
+
+    @property
+    def predecessor_labels(self):
+        return self.graph.get_predecessor_labels(self)
+
+class Graph(object):
+    """Defines a graph object containing nodes that have edges to other nodes.
+
+    >>> a = Graph()
+    >>> for x in range(0, 5):
+    ...     a.add_node(Node(x, [x + 1], a))
+    >>> a.get_node_by_label(4).successor_labels = [0]
+    >>> num_1 = a.get_node_by_label(1)
+    >>> for x in [0, 3, 4]:
+    ...     num_1.add_successor_by_label(x)
+    >>> for x in [2, 3]:
+    ...     a.get_node_by_label(x).add_successor_by_label(0)
+    >>> zero = a.get_node_by_label(0)
+    >>> zero_pred = sorted(zero.predecessor_labels)
+    >>> zero_pred == [1, 2, 3, 4]
+    True
+    >>> zero.successors[0] == a.get_node_by_label(1)
+    True
+    >>> sorted(num_1.successor_labels) == [0, 2, 3, 4]
+    True
+    >>> 1 in a.get_node_by_label(3).predecessor_labels
+    True
+    >>> num_1.remove_successor_by_label(3)
+    >>> 1 in a.get_node_by_label(3).predecessor_labels
+    False
+    >>> sorted(num_1.successor_labels) == [0, 2, 4]
+    True
+    >>> a.del_node_by_label(0)
+    >>> 0 not in a.get_node_by_label(1).successor_labels
+    True
+    >>> 0 not in a.get_node_by_label(4).successor_labels
+    True
+    """
+
+    def __init__(self):
+        self.nodes = []
+
+    def add_node(self, node):
+        self.nodes.append(node)
+
+    def del_node_by_label(self, label):
+        to_remove = self.get_node_by_label(label)
+        predecessors = self.get_predecessors(to_remove)
+
+        #First remove all edges to the node
+        for pred in predecessors:
+            pred.remove_successor(to_remove)
+
+        #Then remove the node itself and its edges out.
+        self.nodes.remove(to_remove)
+
+        #self.nodes[:] = [node for node in self.nodes if node.label != label]
+
+    def del_node(self, node):
+        self.del_node_by_label(node.label)
+
+    #NODES MUST HAVE UNIQUE LABELS
+    def get_node_by_label(self, label):
+        result = [node for node in self.nodes if node.label == label]
+        assert len(result) == 1, "There are multiple nodes with same label"
+        return result[0]
+
+    def get_predecessors(self, b):
+        result = []
+        for a in self.nodes:
+            if b.label in a.successor_labels:
+                result.append(a)
+        return result
+
+    def get_predecessor_labels(self, b):
+        return [x.label for x in self.get_predecessors(b)]
+
+
+
+
+
 
 if __name__ == '__main__':
-        main(sys.argv[1:])
+    main(sys.argv[1:])
