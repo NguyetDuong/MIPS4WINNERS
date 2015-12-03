@@ -13,9 +13,10 @@ def main(argv):
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
         # final_graph = minimum_acyclic_subgraph(graph)
-        # output = topological_sort(final_graph)
+        # output = topological_sort(final_graph) 
 
-        output = topological_sort(graph)
+        output = topological_sort(graph) #CURRENTLY IN REVISION
+        print(output)
         
         ##make sure we have everything in the right order. 
         ## " space-separated list of vertex numbers by increasing rank."
@@ -62,10 +63,10 @@ def adj_matrix_to_graph(N, am):
 
     graph = Graph()
     for i in range(0, N):
-        a = Node(i, [], graph)
+        a = Node(i + 1, [], graph)
         for j in range(0, N):
             if am[i][j] == 1:
-                a.add_successor_by_label(j)
+                a.add_successor_by_label(j + 1) ## Added j + 1 because we need labels to be 1, 2, 3, ..., N
         graph.add_node(a)
 
     return graph
@@ -104,8 +105,31 @@ def topological_sort(graph):
     else:
         big_node = Node(101, source_nodes, graph)
 
+    ##graph.reset_all_nodes()
+    depth_first_search(graph, big_node)
+    prepost = []
 
-    return None
+    for n in graph.nodes:
+        prepost.append((n.label, n.previsit, n.postvisit))
+
+
+    return prepost
+
+def depth_first_search(graph, b_node):
+    stack = []
+    stack.append(b_node)
+    val = 1
+    while len(stack) > 0:
+        node = stack.pop()
+        if node.previsit == -1:
+            stack.append(node)
+            node.previsit = val
+            val += 1
+            for n in node.successors:
+                stack.append(n)
+        elif node.postvisit == -1:
+            node.postvisit = val
+            val += 1
 
 
 def get_nodes_without_predecessors(graph):
