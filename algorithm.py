@@ -1,5 +1,6 @@
 
 import sys
+import functools
 
 
 ###### Boilerplate code used from Instance Validator ######
@@ -9,7 +10,16 @@ def main(argv):
         print "Usage: python algorithm.py [path_to_input_file]"
         return
     else:
-        print processInput(argv[0])
+        N, adj_matrix =  processInput(argv[0])
+        graph = adj_matrix_to_graph(N, adj_matrix)
+        final_graph = minimum_acyclic_subgraph(graph)
+        output = topological_sort(final_graph)
+        
+        ##make sure we have everything in the right order. 
+        ## " space-separated list of vertex numbers by increasing rank."
+        ## probably print this so we can append the output from here to a 
+        ## file using bash >>
+
 
 def processInput(s):
     fin = open(s, "r")
@@ -35,8 +45,47 @@ def processInput(s):
     for i in xrange(N):
         if d[i][i] != 0:
             return "A node cannot have an edge to itself."
-    return "instance ok"
+    return (N, d)
 
+
+def adj_matrix_to_graph(N, am):
+    graph = Graph()
+    for i in range(0, N):
+        a = Node(i, [], graph)
+        for j in range(0, N):
+            if am[i][j] == 1:
+                a.add_successor_by_label(j)
+        graph.add_node(a)
+
+    return graph
+
+def minimum_acyclic_subgraph(graph):
+    ##Until there are no more cycles
+        ##Depth first search the graph from a dummy source node (created every
+        ##iteration since more sources can appear as edges are removed) that
+        ##connects to all source nodes in the given graph, counting the number of
+        ##cycles that each edge participates in. We do this by going back
+        ##through the stack when we find a back edge, and increasing the cycle_count
+        ##of each edge in the cycle by 1.
+
+        ##Stack is kept as a list of vertices, and cycle counts for each edge
+        ##are kept in the node that the edge comes out of.
+
+        ##After the DFS is complete, we remove the edge that participates in
+        ##the greatest number of cycles. 
+
+    return None
+
+def topological_sort(graph):
+    ##return a list of vertex labels in topological order
+    
+    ##Do this by DFS'ing the graph and sorting the nodes by postvisit number,
+    ##then returning their labels.
+
+    return None
+
+
+@functools.total_ordering
 class Node:
 
     def __init__(self, label, successors, graph):
@@ -49,8 +98,8 @@ class Node:
     def __eq__(self, other):
         return self.label == other.label
 
-    def __ne__(self, other):
-        return self.label != other.label
+    def __lt__(self, other):
+        return self.label < other.label
 
     def remove_successor_by_label(self, label):
         self.successor_labels.remove(label)
