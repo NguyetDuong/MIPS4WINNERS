@@ -10,10 +10,12 @@ def main(argv):
         print "Usage: python algorithm.py [path_to_input_file]"
         return
     else:
-        N, adj_matrix =  processInput(argv[0])
-        graph = adj_matrix_to_graph(N, adj_matrix)
-        final_graph = minimum_acyclic_subgraph(graph)
-        output = topological_sort(final_graph)
+        N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
+        graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
+        # final_graph = minimum_acyclic_subgraph(graph)
+        # output = topological_sort(final_graph)
+
+        output = topological_sort(graph)
         
         ##make sure we have everything in the right order. 
         ## " space-separated list of vertex numbers by increasing rank."
@@ -22,6 +24,12 @@ def main(argv):
 
 
 def processInput(s):
+    """Running with an input file, this method will check to see if the input file has
+       the correct format, and if it satisfies all the conditions, it will return a tuple.
+       This tuple will contains the number of nodes in the graph, and will return us the
+       matrix representation of the graph."""
+
+
     fin = open(s, "r")
     line = fin.readline().split()
     if len(line) != 1 or not line[0].isdigit():
@@ -49,6 +57,9 @@ def processInput(s):
 
 
 def adj_matrix_to_graph(N, am):
+    """Creates a graph using the number of nodes, and the adjacency matrix input.
+       Will return to us the graph object."""
+
     graph = Graph()
     for i in range(0, N):
         a = Node(i, [], graph)
@@ -77,13 +88,36 @@ def minimum_acyclic_subgraph(graph):
     return None
 
 def topological_sort(graph):
-    ##return a list of vertex labels in topological order
-    
-    ##Do this by DFS'ing the graph and sorting the nodes by postvisit number,
-    ##then returning their labels.
+    """Returns the list of vertex labels in topological order. 
+
+       This should be done on the revised graph already, such that there are no obvious cycles.
+       If there are multiple source node, make a giant big node and connect them to the multiple
+       source nodes."""
+
+
+    ## Making the big node (if there is more than one source node)
+    source_nodes = get_nodes_without_predecessors(graph)
+    if len(source_nodes) == 0:
+        big_node = graph.nodes[0]
+    elif len(source_nodes) == 1:
+        big_node = source_nodes[0]
+    else:
+        big_node = Node(101, source_nodes, graph)
+
 
     return None
 
+
+def get_nodes_without_predecessors(graph):
+    """Returns a list of nodes that has no predecessors.
+       If there are none, then we return an empty list."""
+    my_nodes = []
+
+    for n in graph.nodes:
+        if (len(graph.get_predecessors(n))) == 0:
+            my_nodes.append(n)
+
+    return my_nodes
 
 @functools.total_ordering
 class Node:
@@ -137,15 +171,20 @@ class Node:
     ## instance variables. They will be computed on access.
     @property
     def successors(self):
+        """Returns all the successors of this specific node."""
         return [self.graph.get_node_by_label(x) for x in
                 self.successor_labels]
 
     @property
     def predecessors(self):
+        """Returns all the predecessors of this specific node.
+
+           NOTE: APPARENTLY THIS DOES NOT WORK -- JUST CALL DIRECTLY."""
         return self.graph.get_predecessors(self)
 
     @property
     def predecessor_labels(self):
+        """Returns all the labels of the predecessors."""
         return self.graph.get_predecessor_labels(self)
 
 class Graph(object):
@@ -200,6 +239,9 @@ class Graph(object):
     ## This edge participates in the maximum number of cycles. It can be
     ## removed from the graph by calling A.remove_successor(B)
     def nodes_with_highest_cycle_count_edge(self):
+        """Returns the pair of nodes (A, B) that the edge A -> B is between.
+           This edge participates in the maximum number of cycles.
+           It can be removed from the graph by calling A.remove_successor(B)."""
         max_cycle = 0
         v1 = None
         v2 = None
