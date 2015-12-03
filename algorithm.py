@@ -92,8 +92,13 @@ class Node:
         self.label = label
         #A list of successor labels, should beintegers. 
         self.successor_labels = successors
+        self.edge_cycles = {}
+        for label in successors:
+            self.edge_cycles[label] = 0
         #The graph this node is part of
         self.graph = graph
+        self.previsit = -1
+        self.postvisit = -1
 
     def __eq__(self, other):
         return self.label == other.label
@@ -103,15 +108,25 @@ class Node:
 
     def remove_successor_by_label(self, label):
         self.successor_labels.remove(label)
+        self.edge_cycles.pop(label)
 
     def remove_successor(self, succ):
         self.successor_labels.remove(succ.label)
+        self.edge_cycles.pop(succ.label)
 
     def add_successor(self, succ):
         self.successor_labels.append(succ.label)
+        self.edge_cycles[succ.label] = 0
 
     def add_successor_by_label(self, succ_label):
         self.successor_labels.append(succ_label)
+        self.edge_cycles[succ_label] = 0
+
+    def reset(self):
+        self.previsit = -1
+        self.postvisit = -1
+        for key in edge_cycles:
+            self.edge_cycles[key] = 0
 
     @property
     def successors(self):
@@ -132,7 +147,8 @@ class Graph(object):
     >>> a = Graph()
     >>> for x in range(0, 5):
     ...     a.add_node(Node(x, [x + 1], a))
-    >>> a.get_node_by_label(4).successor_labels = [0]
+    >>> a.get_node_by_label(4).remove_successor_by_label(5)
+    >>> a.get_node_by_label(4).add_successor_by_label(0)
     >>> num_1 = a.get_node_by_label(1)
     >>> for x in [0, 3, 4]:
     ...     num_1.add_successor_by_label(x)
@@ -162,6 +178,21 @@ class Graph(object):
 
     def __init__(self):
         self.nodes = []
+
+    def reset_all_nodes(self):
+        for node in self.nodes:
+            node.reset()
+
+    def vertices_with_highest_cycle_count_edge(self):
+        max_cycle = 0
+        v1 = None
+        v2 = None
+        for node1 in self.nodes:
+            for node2label in node2.successor_labels:
+                if node1.edge_cycles[node2label] > max_cycle:
+                    v1 = node1
+                    v2 = self.get_node_by_label(node2label)
+        return (v1, v2)
 
     def add_node(self, node):
         self.nodes.append(node)
