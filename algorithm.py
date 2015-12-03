@@ -89,6 +89,11 @@ def topological_sort(graph):
 class Node:
 
     def __init__(self, label, successors, graph):
+        """Initialize this node with a label, a list of successor labels, and
+        a graph that is a part of.
+        
+        Nodes must be part of a graph.
+        """
         self.label = label
         #A list of successor labels, should beintegers. 
         self.successor_labels = successors
@@ -128,6 +133,8 @@ class Node:
         for key in edge_cycles:
             self.edge_cycles[key] = 0
 
+    ## Access the successors, predecessors, and predecessor_labels as if they
+    ## instance variables. They will be computed on access.
     @property
     def successors(self):
         return [self.graph.get_node_by_label(x) for x in
@@ -143,6 +150,12 @@ class Node:
 
 class Graph(object):
     """Defines a graph object containing nodes that have edges to other nodes.
+    Initially empty.
+
+    Nodes are stored inside this graph, and operations on the graph can be
+    done with the node itself, or the label (an integer) of the node. 
+
+    Tests:
 
     >>> a = Graph()
     >>> for x in range(0, 5):
@@ -178,12 +191,15 @@ class Graph(object):
 
     def __init__(self):
         self.nodes = []
-
+    
     def reset_all_nodes(self):
         for node in self.nodes:
             node.reset()
 
-    def vertices_with_highest_cycle_count_edge(self):
+    ## Returns the pair of nodes A, B that the edge A -> B is between.
+    ## This edge participates in the maximum number of cycles. It can be
+    ## removed from the graph by calling A.remove_successor(B)
+    def nodes_with_highest_cycle_count_edge(self):
         max_cycle = 0
         v1 = None
         v2 = None
@@ -192,7 +208,8 @@ class Graph(object):
                 if node1.edge_cycles[node2label] > max_cycle:
                     v1 = node1
                     v2 = self.get_node_by_label(node2label)
-        return (v1, v2)
+                    max_cycle = node1.edge_cycles[node2label]
+        return (v1, v2) 
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -207,8 +224,6 @@ class Graph(object):
 
         #Then remove the node itself and its edges out.
         self.nodes.remove(to_remove)
-
-        #self.nodes[:] = [node for node in self.nodes if node.label != label]
 
     def del_node(self, node):
         self.del_node_by_label(node.label)
