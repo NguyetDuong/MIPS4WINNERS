@@ -24,6 +24,11 @@ def main(argv):
             prepost.append((n.label, n.previsit, n.postvisit))
         print(prepost)
         
+        c = sorted(prepost, key=lambda tup: -tup[2]) ## Sorting algorithm. 
+        
+
+        
+        
         ##make sure we have everything in the right order. 
         ## " space-separated list of vertex numbers by increasing rank."
         ## probably print this so we can append the output from here to a 
@@ -120,41 +125,12 @@ def topological_sort(graph):
     #sorting_alg(graph.nodes)
 
     ## return prepost if you want to see all of the layout
-    return prepost
-
-def sorting_alg(list_of_nodes):
-    """Mergesort algorithm to place all the nodes in an ascending order
-       from worst to greatest node."""
-
-    if len(list_of_nodes) == 0:
-        return list_of_nodes
-
-    left_set = []
-    right_set = []
-
-    i = 0
-    for n in list_of_nodes:
-        if i % 2 == 0:
-            left_set.append(n)
-        else:
-            right_set.append(n)
-
-    left_set = sorting_alg(left_set)
-    right_set = sorting_alg(right_set)
-
-    return merge(left_set, right_set)
-
-# def merge(l, r):
-#     emp = []
-
-#     while len(l) > 0 and len(r) > 0:
-#         if l[0] >= r[0]:
-
+    return None
 
 
 def depth_first_search(graph):
     """A normal DFS algorithm."""
-    
+
     stack = []
     source_nodes = get_nodes_without_predecessors(graph)
     val = 1
