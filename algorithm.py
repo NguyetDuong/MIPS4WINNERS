@@ -15,16 +15,18 @@ def main(argv):
         # final_graph = minimum_acyclic_subgraph(graph)
         # output = topological_sort(final_graph) 
 
-        #output = topological_sort(graph) #CURRENTLY IN REVISION
+        output = topological_sort(graph) #CURRENTLY IN REVISION
         #print(output)
 
-        depth_first_search(graph)
-        prepost = []
-        for n in graph.nodes:
-            prepost.append((n.label, n.previsit, n.postvisit))
-        print(prepost)
+        #depth_first_search(graph, [graph.nodes[0]], 1) # this is for graphs without source
+        # depth_first_search(graph, get_nodes_without_predecessors(graph), 1)
+
+        # prepost = []
+        # for n in graph.nodes:
+        #     prepost.append((n.label, n.previsit, n.postvisit))
+        # print(prepost)
         
-        c = sorted(prepost, key=lambda tup: -tup[2]) ## Sorting algorithm. 
+        #c = sorted(prepost, key=lambda tup: -tup[2]) ## Sorting algorithm. 
         
 
         
@@ -110,30 +112,36 @@ def topological_sort(graph):
     ## Making the big node (if there is more than one source node)
     source_nodes = get_nodes_without_predecessors(graph)
     if len(source_nodes) == 0:
-        big_node = graph.nodes[0]
+        big_node = [graph.nodes[0]]
     elif len(source_nodes) == 1:
-        big_node = source_nodes[0]
+        big_node = source_nodes
     else:
         big_node = Node(101, source_nodes, graph)
+        graph.add_node(big_node)
 
 
-    ##graph.reset_all_nodes()
-    depth_first_search(graph, big_node)
+    
+    depth_first_search(graph, big_node, 1)
     prepost = []
+
     for n in graph.nodes:
         prepost.append((n.label, n.previsit, n.postvisit))
-    #sorting_alg(graph.nodes)
+    
+    for n in prepost:
+        print n
 
     ## return prepost if you want to see all of the layout
     return None
 
 
-def depth_first_search(graph):
-    """A normal DFS algorithm."""
+def depth_first_search(graph, source_nodes, val):
+    """A slightly revised DFS algorithm.
+       This algorithm will only work if there are source nodes!!"""
 
+    
+    ## This is the actual DFS algorithm
     stack = []
-    source_nodes = get_nodes_without_predecessors(graph)
-    val = 1
+    #source_nodes = [graph.nodes[0]] #get_nodes_without_predecessors(graph)
     while len(source_nodes) != 0:
         stack.append(source_nodes.pop())
         while len(stack) > 0:
@@ -143,10 +151,20 @@ def depth_first_search(graph):
                 node.previsit = val
                 val += 1
                 for n in node.successors:
-                    stack.append(n)
+                    if n.postvisit == -1 and n.previsit == -1:
+                        stack.append(n)
             elif node.postvisit == -1:
                 node.postvisit = val
                 val += 1
+
+
+    ## This checks for any nodes left over that has not been traversed bc it's dumb af
+    no_val = []
+    for n in graph.nodes:
+        if n.postvisit == -1:
+            no_val.append(n)
+    if len(no_val) > 0:
+        depth_first_search(graph, no_val, val)
 
 
 def get_nodes_without_predecessors(graph):
