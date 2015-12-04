@@ -15,8 +15,14 @@ def main(argv):
         # final_graph = minimum_acyclic_subgraph(graph)
         # output = topological_sort(final_graph) 
 
-        output = topological_sort(graph) #CURRENTLY IN REVISION
-        print(output)
+        #output = topological_sort(graph) #CURRENTLY IN REVISION
+        #print(output)
+
+        depth_first_search(graph)
+        prepost = []
+        for n in graph.nodes:
+            prepost.append((n.label, n.previsit, n.postvisit))
+        print(prepost)
         
         ##make sure we have everything in the right order. 
         ## " space-separated list of vertex numbers by increasing rank."
@@ -105,31 +111,66 @@ def topological_sort(graph):
     else:
         big_node = Node(101, source_nodes, graph)
 
+
     ##graph.reset_all_nodes()
     depth_first_search(graph, big_node)
     prepost = []
-
     for n in graph.nodes:
         prepost.append((n.label, n.previsit, n.postvisit))
+    #sorting_alg(graph.nodes)
 
-
+    ## return prepost if you want to see all of the layout
     return prepost
 
-def depth_first_search(graph, b_node):
+def sorting_alg(list_of_nodes):
+    """Mergesort algorithm to place all the nodes in an ascending order
+       from worst to greatest node."""
+
+    if len(list_of_nodes) == 0:
+        return list_of_nodes
+
+    left_set = []
+    right_set = []
+
+    i = 0
+    for n in list_of_nodes:
+        if i % 2 == 0:
+            left_set.append(n)
+        else:
+            right_set.append(n)
+
+    left_set = sorting_alg(left_set)
+    right_set = sorting_alg(right_set)
+
+    return merge(left_set, right_set)
+
+# def merge(l, r):
+#     emp = []
+
+#     while len(l) > 0 and len(r) > 0:
+#         if l[0] >= r[0]:
+
+
+
+def depth_first_search(graph):
+    """A normal DFS algorithm."""
+    
     stack = []
-    stack.append(b_node)
+    source_nodes = get_nodes_without_predecessors(graph)
     val = 1
-    while len(stack) > 0:
-        node = stack.pop()
-        if node.previsit == -1:
-            stack.append(node)
-            node.previsit = val
-            val += 1
-            for n in node.successors:
-                stack.append(n)
-        elif node.postvisit == -1:
-            node.postvisit = val
-            val += 1
+    while len(source_nodes) != 0:
+        stack.append(source_nodes.pop())
+        while len(stack) > 0:
+            node = stack.pop()
+            if node.previsit == -1:
+                stack.append(node)
+                node.previsit = val
+                val += 1
+                for n in node.successors:
+                    stack.append(n)
+            elif node.postvisit == -1:
+                node.postvisit = val
+                val += 1
 
 
 def get_nodes_without_predecessors(graph):
