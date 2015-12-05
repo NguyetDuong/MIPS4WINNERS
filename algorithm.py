@@ -113,18 +113,27 @@ def update_cycles_graph(graph, start_node):
     """This marks up all the nodes and increment the counter for the cycle."""
 
     stack = []
+    path_stack = []
     entered_DFS = 0
     stack.append(start_node)
     while len(stack) > 0:
         node = stack.pop()
-        stack.append(node)
-        for n in node.successors:
-            if n in stack:
-                increment_detected_cycle(graph, stack, n, node)
-                entered_DFS += 1
-            else:
-                stack.append(n)
+        if node.mark:
+            path_stack.pop()
+        else:
+            stack.append(node)
+            path_stack.append(node)
+            node.mark = True
 
+            for n in node.successors:
+                if n in stack:
+                    increment_detected_cycle(graph, path_stack, n, node)
+                    entered_DFS += 1
+
+                else:
+                    stack.append(n)
+                    
+    """For unconnected graphs."""
     no_val = []
     for n in self.nodes:
         if not n.mark:
