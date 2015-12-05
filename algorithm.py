@@ -16,7 +16,6 @@ def main(argv):
         # output = topological_sort(final_graph) 
 
         output = topological_sort(final_graph) #CURRENTLY IN REVISION
-        print(output)
 
         #depth_first_search(graph, [graph.nodes[0]], 1) # this is for graphs without source
         # depth_first_search(graph, get_nodes_without_predecessors(graph), 1)
@@ -99,18 +98,14 @@ def minimum_acyclic_subgraph(graph):
         ##After the DFS is complete, we remove the edge that participates in
         ##the greatest number of cycles. 
 
-    loop = True
-    while loop:
-        update_cycles_graph(graph, graph.nodes[0])
-        A, B = get_max_cycle_edge(graph)
-        A.remove_successor(B)
+    
+    entered_DFS = update_cycles_graph(graph, graph.nodes[0])
 
-        for n in graph.nodes:
-            if n.cycle_count:
-                break
+    while entered_DFS > 0:
+        graph.reset_all_nodes()
+        entered_DFS = update_cycles_graph(graph, graph.nodes[0])
 
-        loop = False
-
+    graph.reset_all_nodes()
 
     return None
 
@@ -118,14 +113,17 @@ def update_cycles_graph(graph, start_node):
     """This marks up all the nodes and increment the counter for the cycle."""
 
     stack = []
+    entered_DFS = 0
     stack.append(start_node)
     while len(stack) > 0:
         node = stack.pop()
-        node.mark = True
+        stack.append(node)
         for n in node.successors:
-            if n.mark:
-                go_through_cycle(graph, node, start_node)
-            stack.append(n)
+            if n in stack:
+                increment_detected_cycle(graph, stack, n, node)
+                entered_DFS += 1
+            else:
+                stack.append(n)
 
     no_val = []
     for n in self.nodes:
@@ -134,12 +132,13 @@ def update_cycles_graph(graph, start_node):
     if len(no_val) > 0:
         update_cycles_graph(graph, no_val[0])
 
-    return None
+    return entered_DFS
 
-def go_through_cycle(graph, node, start_node):
-    """Give a node and the starting node, it walks though the graph until it hits the start node.
-       During this walk, it increment all of its cycle count because it is in a cycle."""
+def increment_detected_cycle(graph, stack, repeated_node, current_node):
+    """Whenever a cycle is detected, this function will increase the cycle count of all involved edges by 1.
+    """
 
+    """
     cycle_stack = []
     cycle_stack.append(node)
     while len(cycle_stack) > 0:
@@ -154,8 +153,30 @@ def go_through_cycle(graph, node, start_node):
                     else:
                         n.cycle_count[n_c] = 1
                     go_through_cycle(graph, n_c, start_node)
+    """
 
-    return None
+    my_stack = stack[:]
+    
+    next = repeated_node
+    cur = current_node
+    assert my_stack.pop() == cur
+    count = 1
+    while (cur != repeated_node):
+        if next.label not in cur.edge_cycles.keys():
+            cur.edge_cycles[next.label] = 1
+        else:
+            cur.edge_cycles[next.label] += 1
+        next = cur
+        cur = my_stack.pop()
+        print("Number of times running throught: " + str(count))
+        count += 1
+
+
+    if next.label not in cur.edge_cycles.keys():
+        cur.edge_cycles[next.label] = 1
+    else:
+        cur.edge_cycles[next.label] += 1
+
 
 def get_max_cycle_edge(graph):
     """Returns the edge that has the maximum cycle counter.
@@ -167,12 +188,15 @@ def get_max_cycle_edge(graph):
     max_val = -1
 
     for n in graph.nodes:
-        for n_suc, cycle in n.cycle_count.iteritems():
-            if cycle > max_val:
+        for label in n.successor_labels:
+            if n.edge_cycles[label] > max_val:
+                max_val = n.edge_cycles[label]
                 A = n
-                B = n_suc
-                max_val = cycle
-    return (A, B)
+                B = graph.get_node_by_label(label)
+
+    A.remove_successor(B)
+
+    return None
 
 
 def topological_sort(graph):
@@ -207,7 +231,7 @@ def topological_sort(graph):
     c = sorted(prepost, key=lambda tup: -tup[2]) # sorting our shit by highest postvalue to lowest postvalue
     ordering = ""
     for node in c:
-        ordering += " " + str(node[0])
+        ordering += str(node[0]) + " "
     return ordering
 
 
@@ -275,7 +299,7 @@ class Node:
         self.previsit = -1
         self.postvisit = -1
         self.mark = False
-        self.cycle_count = {}
+        
 
     def __eq__(self, other):
         return self.label == other.label
@@ -309,8 +333,8 @@ class Node:
         self.mark = False
 
     def undo_cycle_count(self):
-        self.cycle_count = {}
-
+        for succ in self.cycle_count.keys():
+            self.cycle_count[succ] = 0
 
     ## Access the successors, predecessors, and predecessor_labels as if they
     ## instance variables. They will be computed on access.
@@ -380,9 +404,6 @@ class Graph(object):
         for node in self.nodes:
             node.reset()
 
-    def unmark_all_nodes(self):
-        for n in self.nodes:
-            node.unmark()
 
     ## Returns the pair of nodes A, B that the edge A -> B is between.
     ## This edge participates in the maximum number of cycles. It can be
