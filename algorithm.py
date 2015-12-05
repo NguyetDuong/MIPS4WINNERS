@@ -12,11 +12,11 @@ def main(argv):
     else:
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
-        # final_graph = minimum_acyclic_subgraph(graph)
+        final_graph = minimum_acyclic_subgraph(graph)
         # output = topological_sort(final_graph) 
 
-        output = topological_sort(graph) #CURRENTLY IN REVISION
-        #print(output)
+        output = topological_sort(final_graph) #CURRENTLY IN REVISION
+        print(output)
 
         #depth_first_search(graph, [graph.nodes[0]], 1) # this is for graphs without source
         # depth_first_search(graph, get_nodes_without_predecessors(graph), 1)
@@ -99,7 +99,81 @@ def minimum_acyclic_subgraph(graph):
         ##After the DFS is complete, we remove the edge that participates in
         ##the greatest number of cycles. 
 
+    loop = True
+    while loop:
+        update_cycles_graph(graph, graph.nodes[0])
+        A, B = get_max_cycle_edge(graph)
+        A.remove_successor(B)
+
+        for n in graph.nodes:
+            if n.cycle_count:
+                break
+
+        loop = False
+
+
     return None
+
+def update_cycles_graph(graph, start_node):
+    """This marks up all the nodes and increment the counter for the cycle."""
+
+    stack = []
+    stack.append(start_node)
+    while len(stack) > 0:
+        node = stack.pop()
+        node.mark = True
+        for n in node.successors:
+            if n.mark:
+                go_through_cycle(graph, node, start_node)
+            stack.append(n)
+
+    no_val = []
+    for n in self.nodes:
+        if not n.mark:
+            no_val.append(n)
+    if len(no_val) > 0:
+        update_cycles_graph(graph, no_val[0])
+
+    return None
+
+def go_through_cycle(graph, node, start_node):
+    """Give a node and the starting node, it walks though the graph until it hits the start node.
+       During this walk, it increment all of its cycle count because it is in a cycle."""
+
+    cycle_stack = []
+    cycle_stack.append(node)
+    while len(cycle_stack) > 0:
+        n = cycle_stack.pop()
+        if n == start_node:
+            return
+        else:
+            for n_c in n.successors:
+                if n_c.mark:
+                    if (n.cycle_count).has_key(n_c):
+                        n.cycle_count[n_c] += 1
+                    else:
+                        n.cycle_count[n_c] = 1
+                    go_through_cycle(graph, n_c, start_node)
+
+    return None
+
+def get_max_cycle_edge(graph):
+    """Returns the edge that has the maximum cycle counter.
+       Specifically a tuple (A,B) where A -> B, so we just need
+       to remove A's successors that is B."""
+
+    A = None
+    B = None
+    max_val = -1
+
+    for n in graph.nodes:
+        for n_suc, cycle in n.cycle_count.iteritems():
+            if cycle > max_val:
+                A = n
+                B = n_suc
+                max_val = cycle
+    return (A, B)
+
 
 def topological_sort(graph):
     """Returns the list of vertex labels in topological order. 
@@ -130,8 +204,11 @@ def topological_sort(graph):
     for n in prepost:
         print n
 
-    ## return prepost if you want to see all of the layout
-    return None
+    c = sorted(prepost, key=lambda tup: -tup[2]) # sorting our shit by highest postvalue to lowest postvalue
+    ordering = ""
+    for node in c:
+        ordering += " " + str(node[0])
+    return ordering
 
 
 def depth_first_search(graph, source_nodes, val):
@@ -197,6 +274,8 @@ class Node:
         self.graph = graph
         self.previsit = -1
         self.postvisit = -1
+        self.mark = False
+        self.cycle_count = {}
 
     def __eq__(self, other):
         return self.label == other.label
@@ -225,6 +304,13 @@ class Node:
         self.postvisit = -1
         for key in edge_cycles:
             self.edge_cycles[key] = 0
+    
+    def unmark(self):
+        self.mark = False
+
+    def undo_cycle_count(self):
+        self.cycle_count = {}
+
 
     ## Access the successors, predecessors, and predecessor_labels as if they
     ## instance variables. They will be computed on access.
@@ -294,23 +380,63 @@ class Graph(object):
         for node in self.nodes:
             node.reset()
 
+    def unmark_all_nodes(self):
+        for n in self.nodes:
+            node.unmark()
+
     ## Returns the pair of nodes A, B that the edge A -> B is between.
     ## This edge participates in the maximum number of cycles. It can be
     ## removed from the graph by calling A.remove_successor(B)
     def nodes_with_highest_cycle_count_edge(self):
         """Returns the pair of nodes (A, B) that the edge A -> B is between.
            This edge participates in the maximum number of cycles.
-           It can be removed from the graph by calling A.remove_successor(B)."""
-        max_cycle = 0
-        v1 = None
-        v2 = None
-        for node1 in self.nodes:
-            for node2label in node2.successor_labels:
-                if node1.edge_cycles[node2label] > max_cycle:
-                    v1 = node1
-                    v2 = self.get_node_by_label(node2label)
-                    max_cycle = node1.edge_cycles[node2label]
-        return (v1, v2) 
+           It can be removed from the graph by calling A.remove_successor(B).
+
+
+
+           NOT BEING USED"""
+        # max_cycle = 0
+        # v1 = None
+        # v2 = None
+        # for node1 in self.nodes:
+        #     for node2label in node1.successor_labels:
+        #         if node1.edge_cycles[node2label] > max_cycle:
+        #             v1 = node1
+        #             v2 = self.get_node_by_label(node2label)
+        #             max_cycle = node1.edge_cycles[node2label]
+
+        start_node = self.nodes[0]
+        stack = []
+        stack.append(start_node)
+        while len(stack) > 0:
+            node = stack.pop()
+            if node.mark:
+                update_cycle(node, start_node)
+            else:
+                node.mark = True
+                for n in node.successors:
+                    stack.append(n)
+
+        no_val = []
+        for n in self.nodes:
+            if not n.mark:
+                no_val.append(n)
+        if len(no_val) > 0:
+            nodes_with_highest_cycle_count_edge()
+
+        A = None
+        B = None
+        max_val = -1
+
+        for n in self.nodes:
+            for n_suc, cycle in n.cycle_count.iteritems():
+                if cycle > max_val:
+                    A = n
+                    B = n_suc
+                    max_val = cycle
+
+
+        return None
 
     def add_node(self, node):
         self.nodes.append(node)
