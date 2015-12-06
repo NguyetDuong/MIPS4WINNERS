@@ -12,14 +12,14 @@ def main(argv):
     else:
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
-        s_n = get_nodes_without_predecessors(graph)
-        for i in s_n:
-            print(i.label)
+        # s_n = get_nodes_without_predecessors(graph)
+        # for i in s_n:
+        #     print(i.label)
         final_graph = minimum_acyclic_subgraph(graph)
-        print("...")
-        s_n = get_nodes_without_predecessors(final_graph)
-        for i in s_n:
-            print(i.label)
+        # print("...")
+        # s_n = get_nodes_without_predecessors(final_graph)
+        # for i in s_n:
+        #     print(i.label)
         output = topological_sort(final_graph)
         print(output)
 
@@ -187,9 +187,10 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
     
     next = repeated_node
     cur = current_node
+    # print(cur)
     assert my_stack.pop() == cur
     count = 1
-    while (cur != repeated_node):
+    while (cur != repeated_node) and len(my_stack) > 0:
         if next.label not in cur.edge_cycles.keys():
             cur.edge_cycles[next.label] = 1
         else:
@@ -197,6 +198,7 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
         next = cur
         cur = my_stack.pop()
         # print("Number of times running throught: " + str(count))
+        # print(len(my_stack))
         count += 1
 
 
@@ -210,17 +212,17 @@ def get_max_cycle_edge(graph):
     """Returns the edge that has the maximum cycle counter.
        Specifically a tuple (A,B) where A -> B, so we just need
        to remove A's successors that is B."""
-    print("MAX CYCLE EDGE")
+    # print("MAX CYCLE EDGE")
     A = None
     B = None
 
     max_val = 0
 
     for n in graph.nodes:
-        print("node we are on: " + str(n.label))
+        # print("node we are on: " + str(n.label))
         for label in n.successor_labels:
-            print("node's successor: " + str(label))
-            print("num of cycles:" + str(n.edge_cycles[label]))
+            # print("node's successor: " + str(label))
+            # print("num of cycles:" + str(n.edge_cycles[label]))
 
             if n.edge_cycles[label] > max_val:
                 max_val = n.edge_cycles[label]
@@ -228,9 +230,9 @@ def get_max_cycle_edge(graph):
                 B = graph.get_node_by_label(label)
 
     if type(A) == type(graph.nodes[0]):
-        print("is removed")
-        print(A.label)
-        print(B.label)
+        # print("is removed")
+        # print(A.label)
+        # print(B.label)
         A.remove_successor(B)
         # print(A.successor_labels)
 
@@ -247,6 +249,9 @@ def topological_sort(graph):
 
     ## Making the big node (if there is more than one source node)
     source_nodes = get_nodes_without_predecessors(graph)
+    s_labels = []
+    for i in source_nodes:
+        s_labels.append(i.label)
     # print("The numbers of source_nodes:")
     # for i in source_nodes:
     #     print(i.label)
@@ -256,8 +261,9 @@ def topological_sort(graph):
     elif len(source_nodes) == 1:
         big_node = source_nodes
     else:
-        big_node = Node(101, source_nodes, graph)
-        graph.add_node(big_node)
+        big_node_obj = Node(101, s_labels, graph)
+        graph.add_node(big_node_obj)
+        big_node = [big_node_obj]
         # MIMI HAS ANAL PROBLEMS. 
 
 
