@@ -13,7 +13,6 @@ def main(argv):
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
         final_graph = minimum_acyclic_subgraph(graph)
-        # print(type(final_graph))
         output = topological_sort(final_graph)
         print(output)
 
@@ -102,10 +101,12 @@ def minimum_acyclic_subgraph(graph):
 
     
     entered_DFS = update_cycles_graph(graph, graph.nodes[0])
+    get_max_cycle_edge(graph)
 
     while entered_DFS > 0:
         graph.reset_all_nodes()
         entered_DFS = update_cycles_graph(graph, graph.nodes[0])
+        get_max_cycle_edge(graph)
 
     graph.reset_all_nodes()
 
@@ -119,16 +120,19 @@ def update_cycles_graph(graph, start_node):
     entered_DFS = 0
     stack.append(start_node)
     while len(stack) > 0:
-        # print(stack)
-        # print(path_stack)
-        # print(start_node.mark)
-        # print("---------W---------")
+    #     print(stack)
+    #     print(path_stack)
+    #     print(start_node.mark)
+    #     print("---------W---------")
         node = stack.pop()
         # print(stack)
         # print(path_stack)
         # print("---------P---------")
         if node.mark:
             path_stack.pop()
+            # print(stack)
+            # print(path_stack)
+            # print("------------IF---------")
         else:
             stack.append(node)
             path_stack.append(node)
@@ -138,7 +142,7 @@ def update_cycles_graph(graph, start_node):
                 if n in stack:
                     increment_detected_cycle(graph, path_stack, n, node)
                     entered_DFS += 1
-                else:
+                elif not n.mark:
                     stack.append(n)
                     
     """For unconnected graphs."""
@@ -202,6 +206,7 @@ def get_max_cycle_edge(graph):
 
     A = None
     B = None
+
     max_val = -1
 
     for n in graph.nodes:
@@ -211,7 +216,12 @@ def get_max_cycle_edge(graph):
                 A = n
                 B = graph.get_node_by_label(label)
 
-    A.remove_successor(B)
+    if type(A) == type(graph.nodes[0]):
+        print("is removed")
+        print(A.label)
+        print(B.label)
+        A.remove_successor(B)
+        print(A.successor_labels)
 
     return None
 
@@ -233,6 +243,7 @@ def topological_sort(graph):
     else:
         big_node = Node(101, source_nodes, graph)
         graph.add_node(big_node)
+        # MIMI HAS ANAL PROBLEMS. 
 
 
     
@@ -345,6 +356,7 @@ class Node:
         self.postvisit = -1
         for key in self.edge_cycles:
             self.edge_cycles[key] = 0
+        self.mark = False
     
     def unmark(self):
         self.mark = False
