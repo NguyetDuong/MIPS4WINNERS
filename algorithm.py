@@ -196,10 +196,10 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
         cur = my_stack.pop()
 
 
-    if next.label not in cur.edge_cycles.keys():
-        cur.edge_cycles[next.label] = 1
-    else:
-        cur.edge_cycles[next.label] += 1
+        #if next.label not in cur.edge_cycles.keys():
+            #cur.edge_cycles[next.label] = 1
+        #else:
+            #cur.edge_cycles[next.label] += 1
 
 
 def get_max_cycle_edge(graph):

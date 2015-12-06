@@ -37,18 +37,18 @@ DFSTEST1 -- passed
 DFSTEST2 -- passed
 101 1 2 5 4 3
 
-DFSTEST3 -- 
+DFSTEST3 -- passed 
 101 1 3 2 4
 
-DFSTEST4 -- 
+DFSTEST4 -- passed
 101 3 2 5 7 4 1 6
 
-DFSTEST5 --
+DFSTEST5 -- passed
 4 7 8 9 6 3 2 1 5 
 
-DFSTEST6 --
+DFSTEST6 -- passed
 101 3 4 5 1 2 6 
 
-DFSTEST7 --
+DFSTEST7 -- passed
 101 1 4 3 2 5 
 
