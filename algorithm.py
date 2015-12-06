@@ -12,7 +12,14 @@ def main(argv):
     else:
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
+        s_n = get_nodes_without_predecessors(graph)
+        for i in s_n:
+            print(i.label)
         final_graph = minimum_acyclic_subgraph(graph)
+        print("...")
+        s_n = get_nodes_without_predecessors(final_graph)
+        for i in s_n:
+            print(i.label)
         output = topological_sort(final_graph)
         print(output)
 
@@ -203,14 +210,18 @@ def get_max_cycle_edge(graph):
     """Returns the edge that has the maximum cycle counter.
        Specifically a tuple (A,B) where A -> B, so we just need
        to remove A's successors that is B."""
-
+    print("MAX CYCLE EDGE")
     A = None
     B = None
 
-    max_val = -1
+    max_val = 0
 
     for n in graph.nodes:
+        print("node we are on: " + str(n.label))
         for label in n.successor_labels:
+            print("node's successor: " + str(label))
+            print("num of cycles:" + str(n.edge_cycles[label]))
+
             if n.edge_cycles[label] > max_val:
                 max_val = n.edge_cycles[label]
                 A = n
@@ -221,7 +232,7 @@ def get_max_cycle_edge(graph):
         print(A.label)
         print(B.label)
         A.remove_successor(B)
-        print(A.successor_labels)
+        # print(A.successor_labels)
 
     return None
 
@@ -236,6 +247,10 @@ def topological_sort(graph):
 
     ## Making the big node (if there is more than one source node)
     source_nodes = get_nodes_without_predecessors(graph)
+    # print("The numbers of source_nodes:")
+    # for i in source_nodes:
+    #     print(i.label)
+    
     if len(source_nodes) == 0:
         big_node = [graph.nodes[0]]
     elif len(source_nodes) == 1:
