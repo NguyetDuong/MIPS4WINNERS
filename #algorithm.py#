@@ -13,11 +13,9 @@ def main(argv):
         N, adj_matrix =  processInput(argv[0]) ## Processed the input of the files, returns number of nodes (N) and matrix (adj_matrix)
         graph = adj_matrix_to_graph(N, adj_matrix) ## Created an actual graph using the input
         final_graph = minimum_acyclic_subgraph(graph)
-        # print(type(final_graph))
-        output = topological_sort(final_graph)
-        print(output)
+        # output = topological_sort(final_graph) 
 
-        #output = topological_sort(final_graph) #CURRENTLY IN REVISION
+        output = topological_sort(final_graph) #CURRENTLY IN REVISION
 
         #depth_first_search(graph, [graph.nodes[0]], 1) # this is for graphs without source
         # depth_first_search(graph, get_nodes_without_predecessors(graph), 1)
@@ -109,7 +107,7 @@ def minimum_acyclic_subgraph(graph):
 
     graph.reset_all_nodes()
 
-    return graph
+    return None
 
 def update_cycles_graph(graph, start_node):
     """This marks up all the nodes and increment the counter for the cycle."""
@@ -118,32 +116,39 @@ def update_cycles_graph(graph, start_node):
     path_stack = []
     entered_DFS = 0
     stack.append(start_node)
+    count = 1
     while len(stack) > 0:
-        # print(stack)
-        # print(path_stack)
-        # print(start_node.mark)
-        # print("---------W---------")
         node = stack.pop()
-        # print(stack)
-        # print(path_stack)
-        # print("---------P---------")
+<<<<<<< a1c170898fe6ca00cceb4d5ea529dbeea64081b8
         if node.mark:
             path_stack.pop()
         else:
             stack.append(node)
             path_stack.append(node)
             node.mark = True
+=======
+        stack.append(node)
+        for n in node.successors:
+            if n in stack:
+                increment_detected_cycle(graph, stack, n, node)
+                entered_DFS += 1
+                print("Number of times running throught: " + str(count))
+                count += 1
+            else:
+                stack.append(n)
+>>>>>>> Updating my version of the project
 
             for n in node.successors:
                 if n in stack:
                     increment_detected_cycle(graph, path_stack, n, node)
                     entered_DFS += 1
+
                 else:
                     stack.append(n)
                     
     """For unconnected graphs."""
     no_val = []
-    for n in graph.nodes:
+    for n in self.nodes:
         if not n.mark:
             no_val.append(n)
     if len(no_val) > 0:
@@ -177,7 +182,6 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
     next = repeated_node
     cur = current_node
     assert my_stack.pop() == cur
-    count = 1
     while (cur != repeated_node):
         if next.label not in cur.edge_cycles.keys():
             cur.edge_cycles[next.label] = 1
@@ -185,8 +189,6 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
             cur.edge_cycles[next.label] += 1
         next = cur
         cur = my_stack.pop()
-        # print("Number of times running throught: " + str(count))
-        count += 1
 
 
     if next.label not in cur.edge_cycles.keys():
@@ -242,8 +244,8 @@ def topological_sort(graph):
     for n in graph.nodes:
         prepost.append((n.label, n.previsit, n.postvisit))
     
-    # for n in prepost:
-    #     print n
+    for n in prepost:
+        print n
 
     c = sorted(prepost, key=lambda tup: -tup[2]) # sorting our shit by highest postvalue to lowest postvalue
     ordering = ""
@@ -343,7 +345,7 @@ class Node:
     def reset(self):
         self.previsit = -1
         self.postvisit = -1
-        for key in self.edge_cycles:
+        for key in edge_cycles:
             self.edge_cycles[key] = 0
     
     def unmark(self):
@@ -467,8 +469,7 @@ class Graph(object):
         max_val = -1
 
         for n in self.nodes:
-            for n_suc, cycle in n.cycle_count.iteritems():
-                if cycle > max_val:
+            for n_suc, cycle in n.cycle_count.iteritems():                if cycle > max_val:
                     A = n
                     B = n_suc
                     max_val = cycle
