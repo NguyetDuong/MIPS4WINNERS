@@ -184,12 +184,9 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
     """
 
     my_stack = stack[:]
-    
     next = repeated_node
     cur = current_node
-    # print(cur)
     assert my_stack.pop() == cur
-    count = 1
     while (cur != repeated_node) and len(my_stack) > 0:
         if next.label not in cur.edge_cycles.keys():
             cur.edge_cycles[next.label] = 1
@@ -197,9 +194,6 @@ def increment_detected_cycle(graph, stack, repeated_node, current_node):
             cur.edge_cycles[next.label] += 1
         next = cur
         cur = my_stack.pop()
-        # print("Number of times running throught: " + str(count))
-        # print(len(my_stack))
-
 
 
     if next.label not in cur.edge_cycles.keys():
